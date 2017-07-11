@@ -52,7 +52,7 @@ int main( int argc, char** argv )
 
     int cur_arg = 0;
 
-    while( ( cur_arg = getopt( argc, argv, "p:m" ) ) != -1 )
+    while( ( cur_arg = getopt( argc, argv, "p:mr:h" ) ) != -1 )
     {
         switch( cur_arg )
         {
@@ -62,6 +62,9 @@ int main( int argc, char** argv )
             case 'm':
                 passed_options.show_map = 1;
                 break;
+            case 'r':
+                passed_options.read_value = get_long_value_from_optarg( optarg, 10 );
+                break;
             case 'h':
                 printf( "Help text.\n" );
                 break;
@@ -70,6 +73,9 @@ int main( int argc, char** argv )
                 {
                     case 'p':
                         fprintf( stderr, "Option %c requires a valid pid of a user-land process.\n", optopt );
+                        break;
+                    case 'r':
+                        fprintf( stderr, "Option %c requires a valid int value to search for.\n", optopt );
                         break;
                     default:
 						if ( isprint( optopt ) )
@@ -107,6 +113,18 @@ int main( int argc, char** argv )
         printf( "Address \t\t Size (Bytes)\n" );
         printf( "======= \t\t ============\n" );
         address_list_iterate( &memory_regions, &print_memory_map );
+    }
+
+    if( passed_options.read_value ) 
+    {
+        address_list_t results = { 0 };
+
+        scan_memory_regions( &memory_regions, passed_options.task, passed_options.read_value, &results );
+        printf( "Address \t\t Size (Bytes)\n" );
+        printf( "======= \t\t ============\n" );
+        address_list_iterate( &results, &print_memory_map );
+
+        address_list_cleanup( &results );
     }
 
     address_list_cleanup( &memory_regions );
