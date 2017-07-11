@@ -1,5 +1,4 @@
 #include "../include/mem_functions.h"
-#include "../include/address_list.h"
 
 mach_port_t get_task_for_pid( int pid, kern_return_t *kern_return )
 {
@@ -17,7 +16,7 @@ mach_port_t get_task_for_pid( int pid, kern_return_t *kern_return )
     return task;
 }
 
-void fill_active_memory_regions( mach_port_t task )
+void fill_active_memory_regions( address_list_t *list, mach_port_t task )
 {
     kern_return_t kern_return;
 
@@ -40,7 +39,7 @@ void fill_active_memory_regions( mach_port_t task )
         }
         else
         {
-            add_address_to_list( address, size );
+            add_address_to_list( list, address, size );
             address += size;
         }
     }

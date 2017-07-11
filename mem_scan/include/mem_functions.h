@@ -7,5 +7,12 @@
 
 #endif
 
+#ifndef ADDRESS_H
+#define ADDRESS_H
+
+#include "../include/address_list.h"
+
+#endif
+
 mach_port_t get_task_for_pid( int pid, kern_return_t *kern_return );
-void fill_active_memory_regions( mach_port_t task );
+void fill_active_memory_regions( address_list_t *list, mach_port_t task );

@@ -1,9 +1,6 @@
 #include "../include/address_list.h"
 
-address_node_t *head = NULL;
-address_node_t *last_entry = NULL;
-
-int add_address_to_list( mach_vm_address_t address, mach_vm_size_t region_size )
+int add_address_to_list( address_list_t *list, mach_vm_address_t address, mach_vm_size_t region_size )
 {
     address_node_t *cur_entry = malloc( sizeof( address_node_t ) );
 
@@ -13,23 +10,23 @@ int add_address_to_list( mach_vm_address_t address, mach_vm_size_t region_size )
     cur_entry->address = address;
     cur_entry->region_size = region_size;
 
-    if( head == NULL )
+    if( list->head == NULL )
     {
-        head = cur_entry;
+        list->head = cur_entry;
     }
     else
     {
-        last_entry->next = cur_entry;
+        list->last_entry->next = cur_entry;
     }
 
-    last_entry = cur_entry;
+    list->last_entry = cur_entry;
 
     return 0;
 }
 
-void address_list_iterate( void ( *function )( mach_vm_address_t address, mach_vm_size_t region_size ) )
+void address_list_iterate( address_list_t *list, void ( *function )( mach_vm_address_t address, mach_vm_size_t region_size ) )
 {
-    address_node_t *cur_entry = head;
+    address_node_t *cur_entry = list->head;
 
     while( cur_entry != NULL )
     {
@@ -39,10 +36,10 @@ void address_list_iterate( void ( *function )( mach_vm_address_t address, mach_v
     }
 }
 
-void address_list_cleanup( )
+void address_list_cleanup( address_list_t *list )
 {
-    address_node_t *prev_entry;
-    address_node_t *cur_entry;
+    address_node_t *prev_entry = NULL;
+    address_node_t *cur_entry = list->head;
 
     while( cur_entry != NULL )
     {

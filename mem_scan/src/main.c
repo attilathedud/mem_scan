@@ -5,7 +5,13 @@
 #include <errno.h>
 #include <limits.h>
 
+#ifndef ADDRESS_H
+#define ADDRESS_H
+
 #include "../include/address_list.h"
+
+#endif
+
 #include "../include/mem_functions.h"
 #include "../include/common.h"
 
@@ -38,9 +44,11 @@ void print_memory_map( mach_vm_address_t address, mach_vm_size_t region_size )
 
 int main( int argc, char** argv )
 {
-    kern_return_t kern_return;
+    address_list_t memory_regions = { 0 };
 
-    options_t passed_options;
+    kern_return_t kern_return = 0;
+
+    options_t passed_options = { 0 };
 
     int cur_arg = 0;
 
@@ -91,17 +99,17 @@ int main( int argc, char** argv )
             return 0;
         }
 
-        fill_active_memory_regions( passed_options.task );
+        fill_active_memory_regions( &memory_regions, passed_options.task );
     }
 
     if( passed_options.show_map )
     {
         printf( "Address \t\t Size (Bytes)\n" );
         printf( "======= \t\t ============\n" );
-        address_list_iterate( &print_memory_map );
+        address_list_iterate( &memory_regions, &print_memory_map );
     }
 
-    address_list_cleanup( );
+    address_list_cleanup( &memory_regions );
 
     return 0;
 }
