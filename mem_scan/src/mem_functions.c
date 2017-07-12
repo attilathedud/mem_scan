@@ -63,7 +63,10 @@ void scan_memory_regions( address_list_t *list, mach_port_t task, uint32_t value
             uint32_t size = 0;
             pointer_t buffer_pointer = 0;
 
-            kern_return = vm_read( task, cur_entry->address + bytes_read, buffer_size, &buffer_pointer, &size );
+            kern_return = vm_read( task, cur_entry->address + bytes_read, 
+                ( cur_entry->region_size < buffer_size ) ? cur_entry->region_size : buffer_size, 
+                &buffer_pointer, &size );
+                
             if( kern_return == KERN_SUCCESS )
             {
                 memcpy( buffer, (const void *)buffer_pointer, size );

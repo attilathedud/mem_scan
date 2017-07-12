@@ -52,7 +52,7 @@ int main( int argc, char** argv )
 
     int cur_arg = 0;
 
-    while( ( cur_arg = getopt( argc, argv, "p:mr:w:v:h" ) ) != -1 )
+    while( ( cur_arg = getopt( argc, argv, "p:mr:f:w:v:h" ) ) != -1 )
     {
         switch( cur_arg )
         {
@@ -64,6 +64,9 @@ int main( int argc, char** argv )
                 break;
             case 'r':
                 passed_options.read_value = get_long_value_from_optarg( optarg, 10 );
+                break;
+            case 'f':
+                passed_options.filter_file = optarg;
                 break;
             case 'w':
                 passed_options.write_address = get_long_value_from_optarg( optarg, 16 );
@@ -82,6 +85,9 @@ int main( int argc, char** argv )
                         break;
                     case 'r':
                         fprintf( stderr, "Option %c requires a valid int value to search for.\n", optopt );
+                        break;
+                    case 'f':
+                        fprintf( stderr, "Option %c requires a valid path to a file.\n", optopt );
                         break;
                     case 'w':
                         fprintf( stderr, "Option %c requires a valid hex address to write to.\n", optopt );
@@ -117,12 +123,38 @@ int main( int argc, char** argv )
         return 0;
     }
 
-    fill_active_memory_regions( &memory_regions, passed_options.task );
+    if( passed_options.filter_file == NULL )
+    {
+        fill_active_memory_regions( &memory_regions, passed_options.task );
+    }
+    else
+    {
+        FILE *filter_file = fopen( passed_options.filter_file, "r" );
+        if( filter_file != NULL )
+        {
+            size_t cur_len = 0;
+            char *cur_line = NULL;
+
+            mach_vm_address_t address = 0;
+            mach_vm_size_t region_size = 0;
+
+            while( getline( &cur_line, &cur_len, filter_file ) != -1 )
+            {
+                sscanf( cur_line, "0x%llx \t\t %llu\n", &address, &region_size );
+                add_address_to_list( &memory_regions, address, region_size );
+            }
+
+            if( cur_line != NULL )
+            {
+                free( cur_line );
+            }
+
+            fclose( filter_file );
+        }
+    }
 
     if( passed_options.show_map )
     {
-        printf( "Address \t\t Size (Bytes)\n" );
-        printf( "======= \t\t ============\n" );
         address_list_iterate( &memory_regions, &print_memory_map );
     }
 
@@ -131,8 +163,6 @@ int main( int argc, char** argv )
         address_list_t results = { 0 };
 
         scan_memory_regions( &memory_regions, passed_options.task, passed_options.read_value, &results );
-        printf( "Address \t\t Size (Bytes)\n" );
-        printf( "======= \t\t ============\n" );
         address_list_iterate( &results, &print_memory_map );
 
         address_list_cleanup( &results );
@@ -151,6 +181,8 @@ int main( int argc, char** argv )
         }
         
     }
+
+    mach_port_deallocate( mach_task_self(), passed_options.task );
 
     address_list_cleanup( &memory_regions );
 
