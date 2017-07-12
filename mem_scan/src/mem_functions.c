@@ -2,15 +2,15 @@
 
 mach_port_t get_task_for_pid( int pid, kern_return_t *kern_return )
 {
-    mach_port_t task = -1;
+    mach_port_t task = RETURN_INVALID_PID;
 
     if( pid <= 0 )
-        return -1;
+        return RETURN_INVALID_PID;
 
     *kern_return = task_for_pid( mach_task_self(), pid, &task );
     if( *kern_return != KERN_SUCCESS ) 
     {
-        return -1;
+        return RETURN_INVALID_PID;
     }
 
     return task;
@@ -66,7 +66,7 @@ void scan_memory_regions( address_list_t *list, mach_port_t task, uint32_t value
             kern_return = vm_read( task, cur_entry->address + bytes_read, 
                 ( cur_entry->region_size < buffer_size ) ? cur_entry->region_size : buffer_size, 
                 &buffer_pointer, &size );
-                
+
             if( kern_return == KERN_SUCCESS )
             {
                 memcpy( buffer, (const void *)buffer_pointer, size );
@@ -93,18 +93,18 @@ void scan_memory_regions( address_list_t *list, mach_port_t task, uint32_t value
     }
 }
 
-int write_memory( mach_port_t task, unsigned long address, uint32_t value, kern_return_t *kern_return )
+mem_return_t write_memory( mach_port_t task, unsigned long address, uint32_t value, kern_return_t *kern_return )
 {
     *kern_return = vm_protect( task, address, sizeof( uint32_t ), 0, VM_PROT_READ | VM_PROT_WRITE );
     if( *kern_return != KERN_SUCCESS ) 
     {
-        return -1;
+        return RETURN_VM_PROTECT_ERROR;
     }
 
     *kern_return = vm_write( task, address, (pointer_t)( unsigned char * )&value, sizeof( uint32_t ) );
     if( *kern_return != KERN_SUCCESS ) 
     {
-        return -2;
+        return RETURN_VM_WRITE_ERROR;
     }
 
     return 0;

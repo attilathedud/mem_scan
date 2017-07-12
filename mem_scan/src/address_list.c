@@ -1,6 +1,6 @@
 #include "../include/address_list.h"
 
-int add_address_to_list( address_list_t *list, mach_vm_address_t address, mach_vm_size_t region_size )
+mem_return_t add_address_to_list( address_list_t *list, mach_vm_address_t address, mach_vm_size_t region_size )
 {
     address_node_t *cur_entry = malloc( sizeof( address_node_t ) );
 
@@ -21,7 +21,7 @@ int add_address_to_list( address_list_t *list, mach_vm_address_t address, mach_v
 
     list->last_entry = cur_entry;
 
-    return 0;
+    return RETURN_SUCCESS;
 }
 
 void address_list_iterate( address_list_t *list, void ( *function )( mach_vm_address_t address, mach_vm_size_t region_size ) )

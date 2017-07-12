@@ -1,10 +1,8 @@
 #include <stdlib.h>
 
-#ifndef MACH_H
-#define MACH_H
-
-#include <mach/mach.h>
-
+#ifndef COMMON_H
+#define COMMON_H
+#include "common.h"
 #endif
 
 typedef struct address_node {
@@ -19,6 +17,6 @@ typedef struct address_list {
     address_node_t *last_entry;
 } address_list_t;
 
-int add_address_to_list( address_list_t *list, mach_vm_address_t address, mach_vm_size_t region_size );
+mem_return_t add_address_to_list( address_list_t *list, mach_vm_address_t address, mach_vm_size_t region_size );
 void address_list_iterate( address_list_t *list, void ( *function )( mach_vm_address_t address, mach_vm_size_t region_size ) );
 void address_list_cleanup( address_list_t *list );

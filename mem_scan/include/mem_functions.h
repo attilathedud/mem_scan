@@ -1,20 +1,14 @@
-#ifndef MACH_H
-#define MACH_H
-
-#include <mach/mach.h>
-#include <mach/mach_vm.h>
-#include <mach/vm_region.h>
-
+#ifndef COMMON_H
+#define COMMON_H
+#include "common.h"
 #endif
 
 #ifndef ADDRESS_H
 #define ADDRESS_H
-
-#include "../include/address_list.h"
-
+#include "address_list.h"
 #endif
 
 mach_port_t get_task_for_pid( int pid, kern_return_t *kern_return );
 void fill_active_memory_regions( address_list_t *list, mach_port_t task );
 void scan_memory_regions( address_list_t *list, mach_port_t task, uint32_t value, address_list_t *results );
-int write_memory( mach_port_t task, unsigned long address, uint32_t value, kern_return_t *kern_return );
+mem_return_t write_memory( mach_port_t task, unsigned long address, uint32_t value, kern_return_t *kern_return );

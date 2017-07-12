@@ -5,15 +5,27 @@
 #include <errno.h>
 #include <limits.h>
 
+#ifndef COMMON_H
+#define COMMON_H
+#include "../include/common.h"
+#endif
+
 #ifndef ADDRESS_H
 #define ADDRESS_H
-
 #include "../include/address_list.h"
-
 #endif
 
 #include "../include/mem_functions.h"
-#include "../include/common.h"
+
+typedef struct options {
+    int pid;
+    mach_port_t task;
+    int show_map;
+    uint32_t read_value;
+    char *filter_file;
+    uint32_t write_value;
+    mach_vm_address_t write_address;
+} options_t;
 
 /*! 
 *	Helper function to safety extract a numerical value from a passed character array.
@@ -105,7 +117,7 @@ int main( int argc, char** argv )
 						break;
                 }
 
-                return 1;
+                return RETURN_GERROR;
             default:
                 abort( );
         }
@@ -117,10 +129,10 @@ int main( int argc, char** argv )
     }
 
     passed_options.task = get_task_for_pid( passed_options.pid, &kern_return );
-    if( passed_options.task == -1 || kern_return != KERN_SUCCESS )
+    if( passed_options.task == RETURN_INVALID_PID || kern_return != KERN_SUCCESS )
     {
         printf( "task_for_pid failed: %s\n", mach_error_string( kern_return ) );
-        return 0;
+        return RETURN_GERROR;
     }
 
     if( passed_options.filter_file == NULL )
@@ -170,21 +182,20 @@ int main( int argc, char** argv )
 
     if( passed_options.write_address && passed_options.write_value )
     {
-        int result = write_memory( passed_options.task, passed_options.write_address, passed_options.write_value, &kern_return );
-        if( result == -1 )
+        mem_return_t result = write_memory( passed_options.task, passed_options.write_address, passed_options.write_value, &kern_return );
+        if( result == RETURN_VM_PROTECT_ERROR )
         {
             printf( "vm_protect failed: %s\n", mach_error_string( kern_return ) );
         }
-        else if( result == -2 )
+        else if( result == RETURN_VM_WRITE_ERROR )
         {
             printf( "vm_write failed: %s\n", mach_error_string( kern_return ) );
         }
-        
     }
 
     mach_port_deallocate( mach_task_self(), passed_options.task );
 
     address_list_cleanup( &memory_regions );
 
-    return 0;
+    return RETURN_SUCCESS;
 }

@@ -1,9 +1,17 @@
-typedef struct options {
-    int pid;
-    mach_port_t task;
-    int show_map;
-    uint32_t read_value;
-    char *filter_file;
-    uint32_t write_value;
-    mach_vm_address_t write_address;
-} options_t;
+#ifndef MACH_H
+#define MACH_H
+
+#include <mach/mach.h>
+#include <mach/mach_vm.h>
+#include <mach/vm_region.h>
+
+#endif
+
+typedef enum mem_return {
+    RETURN_SUCCESS = 0, 
+    RETURN_GERROR = -1, 
+    RETURN_INVALID_PID = -2, 
+    RETURN_KERN_ERROR = -3, 
+    RETURN_VM_PROTECT_ERROR = -4, 
+    RETURN_VM_WRITE_ERROR = -5
+} mem_return_t;
