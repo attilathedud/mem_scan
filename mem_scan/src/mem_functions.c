@@ -92,7 +92,7 @@ void scan_memory_regions( address_list_t *list, mach_port_t task, uint32_t value
 
 int write_memory( mach_port_t task, unsigned long address, uint32_t value, kern_return_t *kern_return )
 {
-    *kern_return = vm_protect( task, address, sizeof( uint32_t ), 0, VM_PROT_READ | VM_PROT_WRITE | VM_PROT_ALL );
+    *kern_return = vm_protect( task, address, sizeof( uint32_t ), 0, VM_PROT_READ | VM_PROT_WRITE );
     if( *kern_return != KERN_SUCCESS ) 
     {
         return -1;
