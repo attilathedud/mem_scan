@@ -29,7 +29,7 @@ unsigned long get_long_value_from_optarg( char* optarg, int base )
 	errno = 0;
 
 	unsigned long temp_value = strtol( optarg, &end_ptr, base );
-	if( end_ptr != optarg && errno != ERANGE && (temp_value >= INT_MIN || temp_value <= INT_MAX))
+	if( end_ptr != optarg && errno != ERANGE && (temp_value >= LONG_MIN || temp_value <= LONG_MAX))
 	{
 		return temp_value;
 	}
@@ -52,7 +52,7 @@ int main( int argc, char** argv )
 
     int cur_arg = 0;
 
-    while( ( cur_arg = getopt( argc, argv, "p:mr:h" ) ) != -1 )
+    while( ( cur_arg = getopt( argc, argv, "p:mr:w:v:h" ) ) != -1 )
     {
         switch( cur_arg )
         {
@@ -65,6 +65,12 @@ int main( int argc, char** argv )
             case 'r':
                 passed_options.read_value = get_long_value_from_optarg( optarg, 10 );
                 break;
+            case 'w':
+                passed_options.write_address = get_long_value_from_optarg( optarg, 16 );
+                break;
+            case 'v':
+                passed_options.write_value = get_long_value_from_optarg( optarg, 10 );
+                break;
             case 'h':
                 printf( "Help text.\n" );
                 break;
@@ -76,6 +82,9 @@ int main( int argc, char** argv )
                         break;
                     case 'r':
                         fprintf( stderr, "Option %c requires a valid int value to search for.\n", optopt );
+                        break;
+                    case 'w':
+                        fprintf( stderr, "Option %c requires a valid hex address to write to.\n", optopt );
                         break;
                     default:
 						if ( isprint( optopt ) )
@@ -96,17 +105,19 @@ int main( int argc, char** argv )
         }
     }
 
-    if( passed_options.pid != 0 )
+    if( passed_options.pid == 0 )
     {
-        passed_options.task = get_task_for_pid( passed_options.pid, &kern_return );
-        if( passed_options.task == -1 || kern_return != KERN_SUCCESS )
-        {
-            printf( "task_for_pid failed: %s\n", mach_error_string( kern_return ) );
-            return 0;
-        }
-
-        fill_active_memory_regions( &memory_regions, passed_options.task );
+        return 0;
     }
+
+    passed_options.task = get_task_for_pid( passed_options.pid, &kern_return );
+    if( passed_options.task == -1 || kern_return != KERN_SUCCESS )
+    {
+        printf( "task_for_pid failed: %s\n", mach_error_string( kern_return ) );
+        return 0;
+    }
+
+    fill_active_memory_regions( &memory_regions, passed_options.task );
 
     if( passed_options.show_map )
     {
@@ -125,6 +136,20 @@ int main( int argc, char** argv )
         address_list_iterate( &results, &print_memory_map );
 
         address_list_cleanup( &results );
+    }
+
+    if( passed_options.write_address && passed_options.write_value )
+    {
+        int result = write_memory( passed_options.task, passed_options.write_address, passed_options.write_value, &kern_return );
+        if( result == -1 )
+        {
+            printf( "vm_protect failed: %s\n", mach_error_string( kern_return ) );
+        }
+        else if( result == -2 )
+        {
+            printf( "vm_write failed: %s\n", mach_error_string( kern_return ) );
+        }
+        
     }
 
     address_list_cleanup( &memory_regions );

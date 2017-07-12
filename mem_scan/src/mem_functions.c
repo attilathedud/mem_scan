@@ -89,3 +89,20 @@ void scan_memory_regions( address_list_t *list, mach_port_t task, uint32_t value
         cur_entry = cur_entry->next;
     }
 }
+
+int write_memory( mach_port_t task, unsigned long address, uint32_t value, kern_return_t *kern_return )
+{
+    *kern_return = vm_protect( task, address, sizeof( uint32_t ), 0, VM_PROT_READ | VM_PROT_WRITE | VM_PROT_ALL );
+    if( *kern_return != KERN_SUCCESS ) 
+    {
+        return -1;
+    }
+
+    *kern_return = vm_write( task, address, (pointer_t)( unsigned char * )&value, sizeof( uint32_t ) );
+    if( *kern_return != KERN_SUCCESS ) 
+    {
+        return -2;
+    }
+
+    return 0;
+}
