@@ -17,16 +17,6 @@
 
 #include "../include/mem_functions.h"
 
-typedef struct options {
-    int pid;
-    mach_port_t task;
-    int show_map;
-    uint32_t read_value;
-    char *filter_file;
-    uint32_t write_value;
-    mach_vm_address_t write_address;
-} options_t;
-
 /*! 
 *	Helper function to safety extract a numerical value from a passed character array.
 *
@@ -56,6 +46,17 @@ void print_memory_map( mach_vm_address_t address, mach_vm_size_t region_size )
 
 int main( int argc, char** argv )
 {
+    typedef struct options {
+        int                 pid;
+        mach_port_t         task;
+        int                 show_map;
+        mach_vm_address_t   upper_limit;
+        uint32_t            read_value;
+        char                *filter_file;
+        uint32_t            write_value;
+        mach_vm_address_t   write_address;
+    } options_t;
+
     address_list_t memory_regions = { 0 };
 
     kern_return_t kern_return = 0;
@@ -64,7 +65,7 @@ int main( int argc, char** argv )
 
     int cur_arg = 0;
 
-    while( ( cur_arg = getopt( argc, argv, "p:mr:f:w:v:h" ) ) != -1 )
+    while( ( cur_arg = getopt( argc, argv, "p:mu:r:f:w:v:h" ) ) != -1 )
     {
         switch( cur_arg )
         {
@@ -73,6 +74,9 @@ int main( int argc, char** argv )
                 break;
             case 'm':
                 passed_options.show_map = 1;
+                break;
+            case 'u':
+                passed_options.upper_limit = get_long_value_from_optarg( optarg, 16 );
                 break;
             case 'r':
                 passed_options.read_value = get_long_value_from_optarg( optarg, 10 );
@@ -137,7 +141,7 @@ int main( int argc, char** argv )
 
     if( passed_options.filter_file == NULL )
     {
-        fill_active_memory_regions( &memory_regions, passed_options.task );
+        fill_active_memory_regions( &memory_regions, passed_options.task, passed_options.upper_limit );
     }
     else
     {

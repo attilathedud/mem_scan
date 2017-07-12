@@ -16,7 +16,7 @@ mach_port_t get_task_for_pid( int pid, kern_return_t *kern_return )
     return task;
 }
 
-void fill_active_memory_regions( address_list_t *list, mach_port_t task )
+void fill_active_memory_regions( address_list_t *list, mach_port_t task, mach_vm_address_t upper_limit )
 {
     kern_return_t kern_return = 0;
 
@@ -27,7 +27,9 @@ void fill_active_memory_regions( address_list_t *list, mach_port_t task )
     vm_region_submap_info_data_64_t info = { 0 };
     mach_msg_type_number_t count = VM_REGION_SUBMAP_INFO_COUNT_64;
 
-    while( address <= 0x7fffffffffff )
+    upper_limit = ( upper_limit == 0 ? 0x7fffffffffff : upper_limit );
+
+    while( address <= upper_limit )
     {
         count = VM_REGION_SUBMAP_INFO_COUNT_64;
 
