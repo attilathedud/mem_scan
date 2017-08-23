@@ -7,6 +7,9 @@
 
 #endif
 
+/*!
+*   Return types for the mach_vm operations.
+*/
 typedef enum mem_return {
     RETURN_SUCCESS = 0, 
     RETURN_GERROR = -1, 
